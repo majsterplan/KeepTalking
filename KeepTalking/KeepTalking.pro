@@ -8,16 +8,27 @@ QT       += core
 
 QT       -= gui
 
+QT       += sql
+
 TARGET = KeepTalking
 CONFIG   += console
 CONFIG   -= app_bundle
+CONFIG   += c++11
 
 TEMPLATE = app
 
 HEADERS += \
-    server.h
+    server.h \
+    commandparser.h \
+    commandbuilder.h \
+    user.h \
+    usersmanager.h
 
 SOURCES += main.cpp \
-    server.cpp
+    server.cpp \
+    commandparser.cpp \
+    commandbuilder.cpp \
+    user.cpp \
+    usersmanager.cpp
 
 LIBS += -lwsock32
