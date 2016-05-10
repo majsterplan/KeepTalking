@@ -16,6 +16,7 @@ public:
     QString getName();
     QVector<User *> getUsers();
     void addUser(User *user);
+    void removeUser(int descriptor);
     bool isUserInConversation(int descriptor);
 
 private:

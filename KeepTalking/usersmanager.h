@@ -12,6 +12,7 @@ public:
     QVector<User *> getUsers(bool loggedIn = false);
     QSqlDatabase * getDatabase();
     void addUser(int descriptor);
+    void removeUser(int descriptor);
     User * findUserByDescriptor(int descriptor);
     QVector<User *> findUsersByName(QString name);
 

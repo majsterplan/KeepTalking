@@ -4,6 +4,8 @@
 #include <QVector>
 #include "conversation.h"
 
+class Conversation;
+
 class ConversationsManager
 {
 public:

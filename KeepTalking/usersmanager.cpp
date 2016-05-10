@@ -33,6 +33,18 @@ void UsersManager::addUser(int descriptor)
     this->users.push_back(new User(descriptor));
 }
 
+void UsersManager::removeUser(int descriptor)
+{
+    for(int i = 0; i < this->users.size(); i++)
+        if(this->users.at(i)->getDescriptor() == descriptor)
+        {
+            User *user = this->users.at(i);
+            this->users.remove(i);
+            delete user;
+            break;
+        }
+}
+
 User * UsersManager::findUserByDescriptor(int descriptor)
 {
     User *user = NULL;

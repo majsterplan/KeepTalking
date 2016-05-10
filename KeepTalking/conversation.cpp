@@ -30,6 +30,16 @@ void Conversation::addUser(User *user)
     this->users.push_back(user);
 }
 
+void Conversation::removeUser(int descriptor)
+{
+    for(int i = 0; i < this->users.size(); i++)
+        if(this->users.at(i)->getDescriptor() == descriptor)
+        {
+            this->users.remove(i);
+            break;
+        }
+}
+
 bool Conversation::isUserInConversation(int descriptor)
 {
     bool userInConversation = false;

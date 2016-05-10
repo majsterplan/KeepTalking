@@ -73,6 +73,25 @@ int main(int argc, char *argv[])
                     receivedBytes = server.readMessage(descriptor);
                     if(receivedBytes == 0)
                     {
+                        User *user = usersManager.findUserByDescriptor(descriptor);
+                        if(user != NULL)
+                        {
+                            if(user->getLoggedIn())
+                                user->leaveAllConversations(&conversationsManager);
+                            usersManager.removeUser(descriptor);
+                            QString code = "LISTA_UZYTKOWNIKOW";
+                            QStringList parameters;
+                            QVector<User *> others = usersManager.getUsers(true);
+                            parameters.append(QString::number(others.size()));
+                            for(int i = 0; i < others.size(); i++)
+                                parameters.append({others.at(i)->getName(), QString::number(static_cast<int>(others.at(i)->getStatus()))});
+                            CommandBuilder commandBuilder;
+                            QString messageToOthers = commandBuilder.build(code, parameters);
+                            for(int i = 0; i < others.size(); i++)
+                            {
+                                server.sendMessage(messageToOthers, others.at(i)->getDescriptor());
+                            }
+                        }
                         server.closeSocket(descriptor);
                         server.deleteSocketDescriptor(descriptor);
                         cout << "Gniazdo o deskryptorze " << descriptor << " odlaczone." << endl;
@@ -350,7 +369,37 @@ int main(int argc, char *argv[])
                                 }
                                 else if(requestCode == "ZREZYGNUJ")
                                 {
-
+                                    Conversation *conversation = conversationsManager.findConversationByName(requestParameters.at(0));
+                                    if(conversation != NULL)
+                                    {
+                                        User *user = usersManager.findUserByDescriptor(descriptor);
+                                        if(user != NULL)
+                                        {
+                                            if(user->getLoggedIn())
+                                            {
+                                                bool success = user->leaveConversation(conversation);
+                                                if(success)
+                                                    responseCode = "POTWIERDZENIE";
+                                                else
+                                                    responseCode = "ODRZUCENIE";
+                                            }
+                                            else
+                                            {
+                                                responseCode = "ERROR";
+                                                responseParameters.append("BLAD_UZYTKOWNIKA");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            responseCode = "ERROR";
+                                            responseParameters.append("BLAD_UZYTKOWNIKA");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        responseCode = "ERROR";
+                                        responseParameters.append("BLAD_KONWERSACJI");
+                                    }
                                 }
                                 else if(requestCode == "BYWAJ")
                                 {
@@ -359,9 +408,8 @@ int main(int argc, char *argv[])
                                     {
                                         if(user->getLoggedIn())
                                         {
-                                            user->setName("unnamed");
-                                            user->setStatus(NIEDOSTEPNY);
-                                            user->setLoggedIn(false);
+                                            user->leaveAllConversations(&conversationsManager);
+                                            user->logout();
                                         }
                                         else
                                         {

@@ -105,4 +105,21 @@ bool User::leaveConversation(Conversation *conversation)
 {
     if(!conversation->isUserInConversation(this->descriptor))
         return false;
+    conversation->removeUser(this->descriptor);
+    return true;
+}
+
+void User::leaveAllConversations(ConversationsManager *conversationsManager)
+{
+    QVector<Conversation *> conversations = conversationsManager->getConversations();
+    for(int i = 0; i < conversations.size(); i++)
+        if(conversations.at(i)->isUserInConversation(this->descriptor))
+            conversations.at(i)->removeUser(this->descriptor);
+}
+
+void User::logout()
+{
+    this->setName("unnamed");
+    this->setStatus(NIEDOSTEPNY);
+    this->setLoggedIn(false);
 }
