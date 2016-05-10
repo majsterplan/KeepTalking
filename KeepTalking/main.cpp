@@ -236,14 +236,14 @@ int main(int argc, char *argv[])
                                             else
                                             {
                                                 Conversation *conversation = conversationsManager.findConversationByName(requestParameters.at(1));
-                                                bool readyToSend = false;
+                                                bool readyToContinue = false;
                                                 if(conversation != NULL)
                                                 {
                                                     bool userInConversation = conversation->isUserInConversation(user->getDescriptor());
                                                     if(!userInConversation)
                                                         responseCode = "ODRZUCENIE";
                                                     else
-                                                        readyToSend = true;
+                                                        readyToContinue = true;
                                                 }
                                                 else
                                                 {
@@ -260,9 +260,9 @@ int main(int argc, char *argv[])
                                                     QVector<User *> others = usersManager.getUsers();
                                                     for(int i = 0; i < others.size(); i++)
                                                         server.sendMessage(extraMessage, others.at(i)->getDescriptor());
-                                                    readyToSend = true;
+                                                    readyToContinue = true;
                                                 }
-                                                if(readyToSend)
+                                                if(readyToContinue)
                                                 {
                                                     parameters.append({user->getName(), conversation->getName(), requestParameters.at(2)});
                                                     message = commandBuilder.build(code, parameters);
@@ -275,9 +275,11 @@ int main(int argc, char *argv[])
                                             }
                                             if(receivers.size() > 0)
                                             {
+                                                QVector<int> descriptors;
                                                 for(int i = 0; i < receivers.size(); i++)
                                                     if(receivers.at(i)->getDescriptor() != user->getDescriptor())
-                                                        server.sendMessage(message, receivers.at(i)->getDescriptor());
+                                                        descriptors.append(receivers.at(i)->getDescriptor());
+                                                user->sendMessage(&server, message, descriptors);
                                                 responseCode = "POTWIERDZENIE";
                                             }
                                             else

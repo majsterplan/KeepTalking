@@ -86,3 +86,9 @@ bool User::changeStatus(Status status)
     this->status = status;
     return true;
 }
+
+void User::sendMessage(Server *server, QString message, QVector<int> descriptors)
+{
+    for(int i = 0; i < descriptors.size(); i++)
+        server->sendMessage(message, descriptors.at(i));
+}

@@ -5,6 +5,9 @@
 #include <QSqlQuery>
 #include <QRegularExpression>
 #include <QCryptographicHash>
+#include <QString>
+#include <QVector>
+#include "server.h"
 
 enum RegistrationProgress
 {
@@ -32,6 +35,7 @@ public:
     RegistrationProgress signup(QString login, QString password);
     bool login(QString login, QString password);
     bool changeStatus(Status status);
+    void sendMessage(Server *server, QString message, QVector<int> descriptors);
 
 private:
     QString name;
