@@ -5,6 +5,8 @@
 #include <QVector>
 #include "user.h"
 
+class User;
+
 class Conversation
 {
 public:

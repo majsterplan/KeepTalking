@@ -8,6 +8,7 @@
 #include <QString>
 #include <QVector>
 #include "server.h"
+#include "conversation.h"
 
 enum RegistrationProgress
 {
@@ -18,6 +19,8 @@ enum Status
 {
     DOSTEPNY, POGADAJMY, ZAJETY, ZARAZ_WRACAM, NIEWIDOCZNY, NIEDOSTEPNY
 };
+
+class Conversation;
 
 class User
 {
@@ -36,6 +39,8 @@ public:
     bool login(QString login, QString password);
     bool changeStatus(Status status);
     void sendMessage(Server *server, QString message, QVector<int> descriptors);
+    bool joinConversation(Conversation *conversation);
+    bool leaveConversation(Conversation *conversation);
 
 private:
     QString name;

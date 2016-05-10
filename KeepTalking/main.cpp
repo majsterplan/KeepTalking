@@ -297,6 +297,61 @@ int main(int argc, char *argv[])
                                         responseParameters.append("BLAD_UZYTKOWNIKA");
                                     }
                                 }
+                                else if(requestCode == "KTO_W_KONWERSACJI")
+                                {
+                                    Conversation *conversation = conversationsManager.findConversationByName(requestParameters.at(0));
+                                    if(conversation != NULL)
+                                    {
+                                        responseCode = "LISTA_W_KONWERSACJI";
+                                        QVector<User *> usersInConversation = conversation->getUsers();
+                                        responseParameters.append(QString::number(usersInConversation.size()));
+                                        for(int i = 0; i < usersInConversation.size(); i++)
+                                            responseParameters.append(usersInConversation.at(i)->getName());
+                                    }
+                                    else
+                                    {
+                                        responseCode = "ERROR";
+                                        responseParameters.append("BLAD_KONWERSACJI");
+                                    }
+                                }
+                                else if(requestCode == "DOLACZ")
+                                {
+                                    Conversation *conversation = conversationsManager.findConversationByName(requestParameters.at(0));
+                                    if(conversation != NULL)
+                                    {
+                                        User *user = usersManager.findUserByDescriptor(descriptor);
+                                        if(user != NULL)
+                                        {
+                                            if(user->getLoggedIn())
+                                            {
+                                                bool success = user->joinConversation(conversation);
+                                                if(success)
+                                                    responseCode = "POTWIERDZENIE";
+                                                else
+                                                    responseCode = "ODRZUCENIE";
+                                            }
+                                            else
+                                            {
+                                                responseCode = "ERROR";
+                                                responseParameters.append("BLAD_UZYTKOWNIKA");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            responseCode = "ERROR";
+                                            responseParameters.append("BLAD_UZYTKOWNIKA");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        responseCode = "ERROR";
+                                        responseParameters.append("BLAD_KONWERSACJI");
+                                    }
+                                }
+                                else if(requestCode == "ZREZYGNUJ")
+                                {
+
+                                }
                                 else if(requestCode == "BYWAJ")
                                 {
                                     User *user = usersManager.findUserByDescriptor(descriptor);
