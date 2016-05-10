@@ -1,7 +1,7 @@
 #include "commandparser.h"
 
 int CommandParser:: protocolVersion = 1;
-QMap<QString, QVector<QString>> CommandParser::commandsValidationData = {{"POTRZASANIE", {"int"}}, {"REJESTRACJA", {"QString", "QString"}}, {"AUTORYZACJA", {"QString", "QString"}}, {"WIADOMOSC", {"QString", "QString", "QString"}}, {"ZMIANA_STATUSU", {"int"}}, {"KTO_W_KONWERSACJI", {"QString"}}, {"DOLACZ", {"QString"}}, {"ZREZYGNUJ", {"QString"}}, {"BYWAJ", {"QString"}}};
+QMap<QString, QVector<QString>> CommandParser::commandsValidationData = {{"POTRZASANIE", {"int"}}, {"REJESTRACJA", {"QString", "QString"}}, {"AUTORYZACJA", {"QString", "QString"}}, {"WIADOMOSC", {"QString", "QString", "QString"}}, {"USTAW_STATUS", {"int"}}, {"KTO_W_KONWERSACJI", {"QString"}}, {"DOLACZ", {"QString"}}, {"ZREZYGNUJ", {"QString"}}, {"BYWAJ", {"QString"}}};
 
 CommandParser::CommandParser()
 {

@@ -9,9 +9,18 @@ UsersManager::UsersManager()
     this->database.setPassword("");
 }
 
-QVector<User *> UsersManager::getUsers()
+QVector<User *> UsersManager::getUsers(bool loggedIn)
 {
-    return this->users;
+    QVector<User *> users;
+    if(!loggedIn)
+        users = this->users;
+    else
+    {
+        for(int i = 0; i < this->users.size(); i++)
+            if(this->users.at(i)->getLoggedIn() == loggedIn)
+                users.append(this->users.at(i));
+    }
+    return users;
 }
 
 QSqlDatabase * UsersManager::getDatabase()

@@ -78,3 +78,11 @@ bool User::login(QString login, QString password)
     this->loggedIn = true;
     return true;
 }
+
+bool User::changeStatus(Status status)
+{
+    if(!(status >= DOSTEPNY && status <= NIEDOSTEPNY))
+       return false;
+    this->status = status;
+    return true;
+}

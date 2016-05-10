@@ -9,7 +9,7 @@ class UsersManager
 {
 public:
     UsersManager();
-    QVector<User *> getUsers();
+    QVector<User *> getUsers(bool loggedIn = false);
     QSqlDatabase * getDatabase();
     void addUser(int descriptor);
     User * findUserByDescriptor(int descriptor);

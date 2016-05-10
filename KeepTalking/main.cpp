@@ -152,14 +152,30 @@ int main(int argc, char *argv[])
                                         database->close();
                                     }
                                 }
-                                else if(requestCode == "ZMIANA_STATUSU")
+                                else if(requestCode == "USTAW_STATUS")
                                 {
-                                    /*User *user = usersManager.findUserByDescriptor(descriptor);
-                                    user->setStatus(static_cast<Status>(parameters.at(0).toInt()));
-                                    QVector<User *> users = usersManager.getUsers();
-                                    QStringList responseParameteres;
-                                    for(int i = 0; i < users.size(); i++)
-                                        responseParameteres.append({users.at(i)->getName(), QString::number(static_cast<int>(users.at(i)->getStatus()))});*/
+                                    User *user = usersManager.findUserByDescriptor(descriptor);
+                                    if(user != NULL && user->getLoggedIn())
+                                    {
+                                        bool success = user->changeStatus(static_cast<Status>(requestParameters.at(0).toInt()));
+                                        if(!success)
+                                            responseCode = "ODRZUCENIE";
+                                        else
+                                        {
+                                            QString code = "ZMIANA_STATUSU";
+                                            QStringList parameters = {QString::number(static_cast<int>(user->getStatus()))};
+                                            QString messageToOthers = commandBuilder.build(code, parameters);
+                                            QVector<User *> others = usersManager.getUsers(true);
+                                            for(int i = 0; i < others.size(); i++)
+                                                server.sendMessage(messageToOthers, others.at(i)->getDescriptor());
+                                            responseCode = "POTWIERDZENIE";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        responseCode = "ERROR";
+                                        responseParameters.append("BLAD_UZYTKOWNIKA");
+                                    }
                                 }
                             }
                             response = commandBuilder.build(responseCode, responseParameters);

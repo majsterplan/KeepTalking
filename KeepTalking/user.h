@@ -32,6 +32,7 @@ public:
     bool getLoggedIn();
     RegistrationProgress signup(QString login, QString password);
     bool login(QString login, QString password);
+    bool changeStatus(Status status);
 
 private:
     QString name;
