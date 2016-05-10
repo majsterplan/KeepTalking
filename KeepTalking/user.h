@@ -5,7 +5,6 @@
 #include <QSqlQuery>
 #include <QRegularExpression>
 #include <QCryptographicHash>
-#include <QDebug>
 
 enum RegistrationProgress
 {

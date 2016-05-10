@@ -13,6 +13,7 @@ public:
     QSqlDatabase * getDatabase();
     void addUser(int descriptor);
     User * findUserByDescriptor(int descriptor);
+    QVector<User *> findUsersByName(QString name);
 
 private:
     QVector<User *> users;

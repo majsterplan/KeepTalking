@@ -44,3 +44,14 @@ User * UsersManager::findUserByDescriptor(int descriptor)
         }
     return user;
 }
+
+QVector<User *> UsersManager::findUsersByName(QString name)
+{
+    QVector<User *> users;
+    for(int i = 0; i < this->users.size(); i++)
+    {
+        if(this->users.at(i)->getName() == name)
+            users.append(this->users.at(i));
+    }
+    return users;
+}

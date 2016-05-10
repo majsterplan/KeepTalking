@@ -3,6 +3,7 @@
 #include <winsock.h>
 #include "server.h"
 #include "usersmanager.h"
+#include "conversationsmanager.h"
 #include "commandparser.h"
 #include "commandbuilder.h"
 #include <QDebug>
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
     }
     cout << "Slucham..." << endl;
     UsersManager usersManager;
+    ConversationsManager conversationsManager;
     while(true)
     {
         fd_set socketsDescriptors = server.getSocketsDescriptors();
@@ -111,6 +113,14 @@ int main(int argc, char *argv[])
                                     else
                                     {
                                         usersManager.addUser(descriptor);
+                                        QString code = "LISTA_KONWERSACJI";
+                                        QStringList parameters;
+                                        QVector<Conversation *> conversations = conversationsManager.getConversations();
+                                        parameters.append(QString::number(conversations.size()));
+                                        for(int i = 0; i < conversations.size(); i ++)
+                                            parameters.append(conversations.at(i)->getName());
+                                        QString message = commandBuilder.build(code, parameters);
+                                        server.sendMessage(message, descriptor);
                                         responseCode = "POTWIERDZENIE";
                                     }
                                 }
@@ -127,21 +137,42 @@ int main(int argc, char *argv[])
                                     else
                                     {
                                         User *user = usersManager.findUserByDescriptor(descriptor);
-                                        if(user != NULL && !user->getLoggedIn())
+                                        if(user != NULL)
                                         {
-                                            if(requestCode == "REJESTRACJA")
+                                            if(!user->getLoggedIn())
                                             {
-                                                RegistrationProgress progress = user->signup(requestParameters.at(0), requestParameters.at(1));
-                                                responseCode = "ODP_REJESTRACJA";
-                                                responseParameters.append(QString::number(static_cast<int>(progress)));
+                                                if(requestCode == "REJESTRACJA")
+                                                {
+                                                    RegistrationProgress progress = user->signup(requestParameters.at(0), requestParameters.at(1));
+                                                    responseCode = "ODP_REJESTRACJA";
+                                                    responseParameters.append(QString::number(static_cast<int>(progress)));
+                                                }
+                                                else
+                                                {
+                                                    bool success = user->login(requestParameters.at(0), requestParameters.at(1));
+                                                    if(!success)
+                                                        responseCode = "ODRZUCENIE";
+                                                    else
+                                                    {
+                                                        QString code = "LISTA_UZYTKOWNIKOW";
+                                                        QStringList parameters;
+                                                        QVector<User *> others = usersManager.getUsers(true);
+                                                        parameters.append(QString::number(others.size()));
+                                                        for(int i = 0; i < others.size(); i++)
+                                                            parameters.append({others.at(i)->getName(), QString::number(static_cast<int>(others.at(i)->getStatus()))});
+                                                        QString messageToOthers = commandBuilder.build(code, parameters);
+                                                        for(int i = 0; i < others.size(); i++)
+                                                        {
+                                                            server.sendMessage(messageToOthers, others.at(i)->getDescriptor());
+                                                        }
+                                                        responseCode = "POTWIERDZENIE";
+                                                    }
+                                                }
                                             }
                                             else
                                             {
-                                                bool success = user->login(requestParameters.at(0), requestParameters.at(1));
-                                                if(!success)
-                                                    responseCode = "ODRZUCENIE";
-                                                else
-                                                    responseCode = "POTWIERDZENIE";
+                                                responseCode = "ERROR";
+                                                responseParameters.append("BLAD_UZYTKOWNIKA");
                                             }
                                         }
                                         else
@@ -155,20 +186,130 @@ int main(int argc, char *argv[])
                                 else if(requestCode == "USTAW_STATUS")
                                 {
                                     User *user = usersManager.findUserByDescriptor(descriptor);
-                                    if(user != NULL && user->getLoggedIn())
+                                    if(user != NULL)
                                     {
-                                        bool success = user->changeStatus(static_cast<Status>(requestParameters.at(0).toInt()));
-                                        if(!success)
-                                            responseCode = "ODRZUCENIE";
+                                        if(user->getLoggedIn())
+                                        {
+                                            bool success = user->changeStatus(static_cast<Status>(requestParameters.at(0).toInt()));
+                                            if(!success)
+                                                responseCode = "ODRZUCENIE";
+                                            else
+                                            {
+                                                QString code = "ZMIANA_STATUSU";
+                                                QStringList parameters = {user->getName(), QString::number(static_cast<int>(user->getStatus()))};
+                                                QString message = commandBuilder.build(code, parameters);
+                                                QVector<User *> others = usersManager.getUsers(true);
+                                                for(int i = 0; i < others.size(); i++)
+                                                    server.sendMessage(message, others.at(i)->getDescriptor());
+                                                responseCode = "POTWIERDZENIE";
+                                            }
+                                        }
                                         else
                                         {
-                                            QString code = "ZMIANA_STATUSU";
-                                            QStringList parameters = {QString::number(static_cast<int>(user->getStatus()))};
-                                            QString messageToOthers = commandBuilder.build(code, parameters);
-                                            QVector<User *> others = usersManager.getUsers(true);
-                                            for(int i = 0; i < others.size(); i++)
-                                                server.sendMessage(messageToOthers, others.at(i)->getDescriptor());
-                                            responseCode = "POTWIERDZENIE";
+                                            responseCode = "ERROR";
+                                            responseParameters.append("BLAD_UZYTKOWNIKA");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        responseCode = "ERROR";
+                                        responseParameters.append("BLAD_UZYTKOWNIKA");
+                                    }
+                                }
+                                else if(requestCode == "WIADOMOSC")
+                                {
+                                    User *user = usersManager.findUserByDescriptor(descriptor);
+                                    if(user != NULL)
+                                    {
+                                        if(user->getLoggedIn())
+                                        {
+                                            QString code = "WIADOMOSC";
+                                            QStringList parameters;
+                                            QString message;
+                                            QVector<User *> receivers;
+                                            if(requestParameters.at(1).isEmpty())
+                                            {
+                                                parameters.append({user->getName(), "", requestParameters.at(2)});
+                                                message = commandBuilder.build(code, parameters);
+                                                receivers = usersManager.findUsersByName(requestParameters.at(0));
+                                            }
+                                            else
+                                            {
+                                                Conversation *conversation = conversationsManager.findConversationByName(requestParameters.at(1));
+                                                bool readyToSend = false;
+                                                if(conversation != NULL)
+                                                {
+                                                    bool userInConversation = conversation->isUserInConversation(user->getDescriptor());
+                                                    if(!userInConversation)
+                                                        responseCode = "ODRZUCENIE";
+                                                    else
+                                                        readyToSend = true;
+                                                }
+                                                else
+                                                {
+                                                    conversationsManager.addConversation(requestParameters.at(1));
+                                                    conversation = conversationsManager.findConversationByName(requestParameters.at(1));
+                                                    conversation->addUser(user);
+                                                    QString extraCode = "LISTA_KONWERSACJI";
+                                                    QStringList extraParameters;
+                                                    QVector<Conversation *> conversations = conversationsManager.getConversations();
+                                                    extraParameters.append(QString::number(conversations.size()));
+                                                    for(int i = 0; i < conversations.size(); i ++)
+                                                        extraParameters.append(conversations.at(i)->getName());
+                                                    QString extraMessage = commandBuilder.build(extraCode, extraParameters);
+                                                    QVector<User *> others = usersManager.getUsers();
+                                                    for(int i = 0; i < others.size(); i++)
+                                                        server.sendMessage(extraMessage, others.at(i)->getDescriptor());
+                                                    readyToSend = true;
+                                                }
+                                                if(readyToSend)
+                                                {
+                                                    parameters.append({user->getName(), conversation->getName(), requestParameters.at(2)});
+                                                    message = commandBuilder.build(code, parameters);
+                                                    receivers = usersManager.findUsersByName(requestParameters.at(0));
+                                                    QVector<User *> newUsersInConversation = usersManager.findUsersByName(requestParameters.at(0));
+                                                    for(int i = 0; i < newUsersInConversation.size(); i++)
+                                                        conversation->addUser(newUsersInConversation.at(i));
+                                                    receivers = conversation->getUsers();
+                                                }
+                                            }
+                                            if(receivers.size() > 0)
+                                            {
+                                                for(int i = 0; i < receivers.size(); i++)
+                                                    if(receivers.at(i)->getDescriptor() != user->getDescriptor())
+                                                        server.sendMessage(message, receivers.at(i)->getDescriptor());
+                                                responseCode = "POTWIERDZENIE";
+                                            }
+                                            else
+                                                responseCode = "ODRZUCENIE";
+                                        }
+                                        else
+                                        {
+                                            responseCode = "ERROR";
+                                            responseParameters.append("BLAD_UZYTKOWNIKA");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        responseCode = "ERROR";
+                                        responseParameters.append("BLAD_UZYTKOWNIKA");
+                                    }
+                                }
+                                else if(requestCode == "BYWAJ")
+                                {
+                                    User *user = usersManager.findUserByDescriptor(descriptor);
+                                    if(user != NULL)
+                                    {
+                                        if(user->getLoggedIn())
+                                        {
+                                            user->setName("unnamed");
+                                            user->setStatus(NIEDOSTEPNY);
+                                            user->setLoggedIn(false);
+                                        }
+                                        else
+                                        {
+                                            responseCode = "ERROR";
+                                            responseParameters.append("BLAD_UZYTKOWNIKA");
                                         }
                                     }
                                     else
@@ -179,12 +320,14 @@ int main(int argc, char *argv[])
                                 }
                             }
                             response = commandBuilder.build(responseCode, responseParameters);
-                            server.sendMessage(response, descriptor);
+                            if(response != "\r\n")
+                                server.sendMessage(response, descriptor);
                             if(response.endsWith("\r\n"))
                                 responseToShow = response.mid(0, response.length() - 2);
                             else
                                 responseToShow = response;
-                            cout << server.getListeningSocketDescriptor() << "(serwer) odpowiada: " << responseToShow.toStdString() << "." << endl;
+                            if(!responseToShow.isEmpty())
+                                cout << server.getListeningSocketDescriptor() << "(serwer) odpowiada: " << responseToShow.toStdString() << "." << endl;
                         }
                     }
                 }

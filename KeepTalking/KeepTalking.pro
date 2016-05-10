@@ -22,13 +22,17 @@ HEADERS += \
     commandparser.h \
     commandbuilder.h \
     user.h \
-    usersmanager.h
+    usersmanager.h \
+    conversation.h \
+    conversationsmanager.h
 
 SOURCES += main.cpp \
     server.cpp \
     commandparser.cpp \
     commandbuilder.cpp \
     user.cpp \
-    usersmanager.cpp
+    usersmanager.cpp \
+    conversation.cpp \
+    conversationsmanager.cpp
 
 LIBS += -lwsock32
