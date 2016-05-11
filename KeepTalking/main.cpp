@@ -6,7 +6,6 @@
 #include "conversationsmanager.h"
 #include "commandparser.h"
 #include "commandbuilder.h"
-#include <QDebug>
 
 using namespace std;
 
@@ -145,15 +144,22 @@ int main(int argc, char *argv[])
                                 }
                                 else if(requestCode == "REJESTRACJA" || requestCode == "AUTORYZACJA")
                                 {
+                                    bool readyToContinue = false;
                                     QSqlDatabase *database = usersManager.getDatabase();
                                     if(!database->isOpen())
-                                        database->open();
-                                    if(!database->isOpen())
                                     {
-                                        responseCode = "ERROR";
-                                        responseParameters.append("BLAD_BAZY_DANYCH");
+                                        database->open();
+                                        if(!database->isOpen())
+                                        {
+                                            responseCode = "ERROR";
+                                            responseParameters.append("BLAD_BAZY_DANYCH");
+                                        }
+                                        else
+                                            readyToContinue = true;
                                     }
                                     else
+                                        readyToContinue = true;
+                                    if(readyToContinue)
                                     {
                                         User *user = usersManager.findUserByDescriptor(descriptor);
                                         if(user != NULL)

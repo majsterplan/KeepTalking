@@ -12,7 +12,7 @@
 
 enum RegistrationProgress
 {
-    AKCEPTUJE, LOGIN_UZYWANY, HASLO_ZA_PROSTE
+    AKCEPTUJE = 1, LOGIN_UZYWANY, HASLO_ZA_PROSTE
 };
 
 enum Status
