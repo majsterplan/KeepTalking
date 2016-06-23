@@ -119,7 +119,7 @@ void User::leaveAllConversations(ConversationsManager *conversationsManager)
 
 void User::logout()
 {
-    this->setName("unnamed");
-    this->setStatus(NIEDOSTEPNY);
-    this->setLoggedIn(false);
+    this->name = "unnamed";
+    this->status = NIEDOSTEPNY;
+    this->loggedIn = false;
 }
